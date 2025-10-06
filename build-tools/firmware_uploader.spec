@@ -107,7 +107,7 @@ if os.name != 'nt':
     app = BUNDLE(
         exe,
         name='FirmwareUploader.app',
-        icon='icon.icns',
+        icon=icon_path,  # Use the detected icon path (can be None)
         bundle_identifier='com.yourcompany.firmwareuploader',
         info_plist={
             'CFBundleShortVersionString': version,
