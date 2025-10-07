@@ -9,11 +9,6 @@ import serial.tools.list_ports
 from typing import Dict, List, Tuple
 
 # ─────────────────────────────
-# VERSION (injected at build time)
-# ─────────────────────────────
-VERSION = os.getenv("FW_VERSION", "1.0.0")
-
-# ─────────────────────────────
 # PATH HELPERS FOR BUNDLED TOOLS
 # ─────────────────────────────
 def get_resource_path(relative_path):
@@ -24,6 +19,40 @@ def get_resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
+
+# ─────────────────────────────
+# VERSION (injected at build time)
+# ─────────────────────────────
+def get_version():
+    """Get version from environment variable or version file"""
+    # Try environment variable first (set during build)
+    version = os.getenv("FW_VERSION")
+    if version:
+        return version
+    
+    # Try reading from version file (created during build)
+    try:
+        version_file = get_resource_path("_version.txt")
+        if os.path.exists(version_file):
+            with open(version_file, 'r') as f:
+                return f.read().strip()
+    except Exception:
+        pass
+    
+    # Try reading from file relative to script
+    try:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        version_file = os.path.join(script_dir, "_version.txt")
+        if os.path.exists(version_file):
+            with open(version_file, 'r') as f:
+                return f.read().strip()
+    except Exception:
+        pass
+    
+    # Fallback to DEV (makes it obvious if version wasn't injected)
+    return "DEV"
+
+VERSION = get_version()
 
 def get_bundled_tool_path(tool_name):
     """Get path to bundled tool executable"""

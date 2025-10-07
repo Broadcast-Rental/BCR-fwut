@@ -16,7 +16,7 @@ if defined GIT_TAG (
 ) else if not "%1"=="" (
     set FW_VERSION=%1
 ) else (
-    set FW_VERSION=1.0.0
+    set FW_VERSION=DEV
 )
 
 echo Building version: %FW_VERSION%
@@ -24,6 +24,9 @@ echo.
 
 REM Change to project root if running from build-tools
 if exist "..\src" cd ..
+
+REM Create version file
+echo %FW_VERSION% > src\_version.txt
 
 REM Check for tools directory
 if not exist "tools" (

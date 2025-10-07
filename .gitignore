@@ -38,6 +38,7 @@ Thumbs.db
 projects_config_sample.json
 *.bin
 *.hex
+src/_version.txt
 
 # Bundled tools (platform-specific binaries)
 tools/

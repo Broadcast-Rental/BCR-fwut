@@ -55,10 +55,28 @@ jobs:
         Copy-Item "C:\ProgramData\chocolatey\lib\avrdude\tools\*.dll" -Destination "tools\" -ErrorAction SilentlyContinue
       shell: powershell
     
+    - name: Set version in environment
+      run: |
+        echo "FW_VERSION=${{ steps.get_version.outputs.version }}" >> $GITHUB_ENV
+        echo "Building with version: ${{ steps.get_version.outputs.version }}"
+      shell: bash
+    
+    - name: Create version file
+      run: echo ${{ steps.get_version.outputs.version }} > src/_version.txt
+      shell: bash
+    
     - name: Build executable
-      run: pyinstaller --clean build-tools\firmware_uploader.spec
+      run: |
+        echo "Version being built: %FW_VERSION%"
+        pyinstaller --clean build-tools\firmware_uploader.spec
       env:
         FW_VERSION: ${{ steps.get_version.outputs.version }}
+    
+    - name: Verify version in executable
+      run: |
+        strings dist/FirmwareUploader.exe | grep -i "v${{ steps.get_version.outputs.version }}" || echo "Warning: Version string not found in executable"
+      shell: bash
+      continue-on-error: true
     
     - name: Rename executable with version
       shell: bash
@@ -138,10 +156,25 @@ jobs:
         cp $(which avrdude) tools/
         cp $(brew --prefix)/etc/avrdude.conf tools/ || cp /usr/local/etc/avrdude.conf tools/ || true
     
+    - name: Set version in environment
+      run: |
+        echo "FW_VERSION=${{ steps.get_version.outputs.version }}" >> $GITHUB_ENV
+        echo "Building with version: ${{ steps.get_version.outputs.version }}"
+    
+    - name: Create version file
+      run: echo ${{ steps.get_version.outputs.version }} > src/_version.txt
+    
     - name: Build executable
-      run: pyinstaller --clean build-tools/firmware_uploader.spec
+      run: |
+        echo "Version being built: $FW_VERSION"
+        pyinstaller --clean build-tools/firmware_uploader.spec
       env:
         FW_VERSION: ${{ steps.get_version.outputs.version }}
+    
+    - name: Verify version in executable
+      run: |
+        strings dist/FirmwareUploader.app/Contents/MacOS/FirmwareUploader | grep -i "v${{ steps.get_version.outputs.version }}" || echo "Warning: Version string not found in executable"
+      continue-on-error: true
     
     - name: Fix macOS permissions and quarantine
       run: |

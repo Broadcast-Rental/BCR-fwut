@@ -16,7 +16,7 @@ if [ -n "$GIT_TAG" ]; then
 elif [ -n "$1" ]; then
     export FW_VERSION="$1"
 else
-    export FW_VERSION="1.0.0"
+    export FW_VERSION="DEV"
 fi
 
 echo "Building version: $FW_VERSION"
@@ -26,6 +26,9 @@ echo ""
 if [ -d "../src" ]; then
     cd ..
 fi
+
+# Create version file
+echo "$FW_VERSION" > src/_version.txt
 
 # Check for tools directory
 if [ ! -d "tools" ]; then

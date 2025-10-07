@@ -9,8 +9,8 @@ from PyInstaller.utils.hooks import collect_data_files
 
 block_cipher = None
 
-# Get version from environment or use default
-version = os.getenv('FW_VERSION', '1.0.0')
+# Get version from environment or use default (DEV makes it obvious if not set)
+version = os.getenv('FW_VERSION', 'DEV')
 
 import glob
 
@@ -35,18 +35,27 @@ if os.path.exists(tools_dir):
         for file in glob.glob(os.path.join(tools_dir, 'avrdude*')):
             binaries.append((file, 'tools'))
 
+# Prepare data files
+datas = [
+    (os.path.join(project_root, 'src', 'projects_config.json'), '.'),
+    # Bundle logo files for window icon
+    (os.path.join(project_root, 'build-tools', 'assets', 'logo.ico'), os.path.join('build-tools', 'assets')),
+    (os.path.join(project_root, 'build-tools', 'assets', 'logo.png'), os.path.join('build-tools', 'assets')),
+]
+
+# Add version file if it exists
+version_file = os.path.join(project_root, 'src', '_version.txt')
+if os.path.exists(version_file):
+    datas.append((version_file, '.'))
+
+# Add esptool data files
+datas.extend(collect_data_files('esptool'))
+
 a = Analysis(
     [os.path.join(project_root, 'src', 'firmware_uploader.py')],
     pathex=[os.path.join(project_root, 'src')],
     binaries=binaries,
-    datas=[
-        (os.path.join(project_root, 'src', 'projects_config.json'), '.'),
-        # Bundle logo files for window icon
-        (os.path.join(project_root, 'build-tools', 'assets', 'logo.ico'), os.path.join('build-tools', 'assets')),
-        (os.path.join(project_root, 'build-tools', 'assets', 'logo.png'), os.path.join('build-tools', 'assets')),
-        # Collect esptool data files (stub flasher files, etc.)
-        *collect_data_files('esptool'),
-    ],
+    datas=datas,
     hiddenimports=[
         'serial.tools.list_ports',
         'tkinter',
