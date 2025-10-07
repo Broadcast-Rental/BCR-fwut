@@ -80,6 +80,21 @@ jobs:
         draft: false
         prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
         generate_release_notes: true
+        name: "Firmware Uploader v${{ steps.get_version.outputs.version }}"
+        body: |
+          ## Firmware Uploader v${{ steps.get_version.outputs.version }}
+          
+          ### Downloads
+          - **Windows:** `FirmwareUploader-v${{ steps.get_version.outputs.version }}.exe`
+          - **macOS:** `FirmwareUploader-v${{ steps.get_version.outputs.version }}.dmg`
+          
+          ### Installation
+          **Windows:** Download the `.exe` file and run it
+          **macOS:** Download the `.dmg`, open it, and drag the app to Applications. Right-click and select "Open" the first time.
+          
+          ---
+          
+          Developed by Daniël Vegter - Broadcast Rental
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -178,6 +193,21 @@ jobs:
         draft: false
         prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
         generate_release_notes: true
+        name: "Firmware Uploader v${{ steps.get_version.outputs.version }}"
+        body: |
+          ## Firmware Uploader v${{ steps.get_version.outputs.version }}
+          
+          ### Downloads
+          - **Windows:** `FirmwareUploader-v${{ steps.get_version.outputs.version }}.exe`
+          - **macOS:** `FirmwareUploader-v${{ steps.get_version.outputs.version }}.dmg`
+          
+          ### Installation
+          **Windows:** Download the `.exe` file and run it
+          **macOS:** Download the `.dmg`, open it, and drag the app to Applications. Right-click and select "Open" the first time.
+          
+          ---
+          
+          Developed by Daniël Vegter - Broadcast Rental
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
