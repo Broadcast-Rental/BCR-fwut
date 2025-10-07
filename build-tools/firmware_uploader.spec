@@ -41,6 +41,9 @@ a = Analysis(
     binaries=binaries,
     datas=[
         (os.path.join(project_root, 'src', 'projects_config.json'), '.'),
+        # Bundle logo files for window icon
+        (os.path.join(project_root, 'build-tools', 'assets', 'logo.ico'), os.path.join('build-tools', 'assets')),
+        (os.path.join(project_root, 'build-tools', 'assets', 'logo.png'), os.path.join('build-tools', 'assets')),
         # Collect esptool data files (stub flasher files, etc.)
         *collect_data_files('esptool'),
     ],
@@ -104,6 +107,7 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon=icon_path,  # Optional icon (will use default if not found)
+    version_file=None,  # Could add a version file here if needed
 )
 
 # For macOS app bundle (optional)
@@ -112,11 +116,13 @@ if os.name != 'nt':
         exe,
         name='FirmwareUploader.app',
         icon=icon_path,  # Use the detected icon path (can be None)
-        bundle_identifier='com.yourcompany.firmwareuploader',
+        bundle_identifier='com.broadcastrental.firmwareuploader',
         info_plist={
             'CFBundleShortVersionString': version,
             'CFBundleVersion': version,
             'NSHighResolutionCapable': True,
+            'CFBundleGetInfoString': f'Firmware Uploader {version} - Developed by Daniël Vegter - Broadcast Rental',
+            'NSHumanReadableCopyright': '© Broadcast Rental - Daniël Vegter',
         },
     )
 

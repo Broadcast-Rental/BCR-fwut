@@ -8,8 +8,19 @@ echo Building Firmware Uploader for Windows
 echo ============================================================
 echo.
 
-REM Set version
-set FW_VERSION=1.0.0
+REM Try to get version from git tag, otherwise use argument or default
+for /f "delims=" %%i in ('git describe --tags --abbrev=0 2^>nul') do set GIT_TAG=%%i
+if defined GIT_TAG (
+    REM Remove 'v' prefix if present
+    set FW_VERSION=%GIT_TAG:v=%
+) else if not "%1"=="" (
+    set FW_VERSION=%1
+) else (
+    set FW_VERSION=1.0.0
+)
+
+echo Building version: %FW_VERSION%
+echo.
 
 REM Change to project root if running from build-tools
 if exist "..\src" cd ..
@@ -31,6 +42,7 @@ echo Building executable with PyInstaller...
 echo.
 
 REM Build using spec file for better control
+set FW_VERSION=%FW_VERSION%
 pyinstaller --clean build-tools\firmware_uploader.spec
 
 if %ERRORLEVEL% EQU 0 (

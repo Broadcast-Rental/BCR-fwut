@@ -126,7 +126,18 @@ def build_esptool_command(config: Dict, port: str, firmware_path: str) -> List[s
     """Build esptool command for ESP32 devices"""
     # Check if we're running as a frozen executable
     if getattr(sys, 'frozen', False):
-        # Running as compiled exe - check for standalone esptool first
+        # On macOS frozen apps, use the bundled Python with esptool module
+        if os.name != 'nt':
+            # macOS/Linux - use bundled Python interpreter with esptool module
+            return [
+                sys.executable, "-m", "esptool",
+                "--chip", config["chip"],
+                "--baud", config["baud"],
+                "--port", port,
+                "write-flash", config["address"], firmware_path
+            ]
+        
+        # Windows - check for standalone esptool first
         esptool_path = get_bundled_tool_path('esptool')
         if esptool_path != 'esptool' and os.path.exists(esptool_path):
             # Standalone esptool executable found
@@ -243,11 +254,16 @@ def run_esptool_direct(config: Dict, port: str, firmware_path: str, log_widget):
         # Get all output
         output = output_buffer.getvalue()
         log_widget.insert(tk.END, output)
+        log_widget.see(tk.END)
         
         return returncode
         
     except Exception as e:
-        log_widget.insert(tk.END, f"Error: {str(e)}\n")
+        log_widget.insert(tk.END, f"Error calling esptool: {str(e)}\n")
+        log_widget.see(tk.END)
+        import traceback
+        log_widget.insert(tk.END, f"Traceback: {traceback.format_exc()}\n")
+        log_widget.see(tk.END)
         return 1
 
 
@@ -284,8 +300,13 @@ def flash_firmware(project_name: str, firmware_path: str, port_display: str, log
     def run():
         try:
             # Check if we should call esptool directly (frozen exe) or via subprocess
-            if config["tool"] == "esptool" and getattr(sys, 'frozen', False):
-                # Running as frozen exe - call esptool directly
+            # Note: On macOS frozen apps, we prefer subprocess over direct call
+            use_direct_esptool = (config["tool"] == "esptool" and 
+                                  getattr(sys, 'frozen', False) and 
+                                  os.name == 'nt')  # Only use direct call on Windows
+            
+            if use_direct_esptool:
+                # Running as frozen exe on Windows - call esptool directly
                 log_widget.insert(tk.END, "Running esptool (bundled)...\n\n")
                 log_widget.see(tk.END)
                 returncode = run_esptool_direct(config, port, firmware_path, log_widget)
@@ -437,6 +458,29 @@ def main():
     root.title(f"Firmware Uploader v{VERSION}")
     root.geometry("700x600")
     
+    # Set window icon
+    try:
+        if os.name == 'nt':  # Windows
+            icon_path = get_resource_path(os.path.join('build-tools', 'assets', 'logo.ico'))
+            # If not found in that path, try relative to script
+            if not os.path.exists(icon_path):
+                script_dir = os.path.dirname(os.path.abspath(__file__))
+                icon_path = os.path.join(script_dir, '..', 'build-tools', 'assets', 'logo.ico')
+            if os.path.exists(icon_path):
+                root.iconbitmap(icon_path)
+        else:  # macOS/Linux
+            icon_path = get_resource_path(os.path.join('build-tools', 'assets', 'logo.png'))
+            # If not found in that path, try relative to script
+            if not os.path.exists(icon_path):
+                script_dir = os.path.dirname(os.path.abspath(__file__))
+                icon_path = os.path.join(script_dir, '..', 'build-tools', 'assets', 'logo.png')
+            if os.path.exists(icon_path):
+                icon_img = tk.PhotoImage(file=icon_path)
+                root.iconphoto(True, icon_img)
+    except Exception as e:
+        # If icon loading fails, just continue without it
+        print(f"Could not load icon: {e}")
+    
     # Menu bar
     menubar = tk.Menu(root)
     root.config(menu=menubar)
@@ -470,7 +514,11 @@ def main():
             f"Firmware Uploader v{VERSION}\n\n"
             "Simple tool for uploading firmware to\n"
             "ESP32, Arduino, and other devices.\n\n"
-            "Supports: esptool, avrdude"
+            "Supports: esptool, avrdude\n\n"
+            "─────────────────────────────\n"
+            "Developed by: Daniël Vegter\n"
+            "Company: Broadcast Rental\n"
+            "─────────────────────────────"
         )
     )
     

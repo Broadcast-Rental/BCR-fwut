@@ -8,8 +8,19 @@ echo "Building Firmware Uploader for macOS"
 echo "============================================================"
 echo ""
 
-# Set version
-export FW_VERSION=1.0.0
+# Try to get version from git tag, otherwise use argument or default
+GIT_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+if [ -n "$GIT_TAG" ]; then
+    # Remove 'v' prefix if present
+    export FW_VERSION="${GIT_TAG#v}"
+elif [ -n "$1" ]; then
+    export FW_VERSION="$1"
+else
+    export FW_VERSION="1.0.0"
+fi
+
+echo "Building version: $FW_VERSION"
+echo ""
 
 # Change to project root if running from build-tools
 if [ -d "../src" ]; then

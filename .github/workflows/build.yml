@@ -17,6 +17,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Extract version from tag
+      id: get_version
+      shell: bash
+      run: |
+        if [[ "${{ github.event_name }}" == "release" ]]; then
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
+        elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          VERSION="${GITHUB_REF#refs/tags/}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
+        else
+          VERSION="dev-$(git rev-parse --short HEAD)"
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION"
+    
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -39,19 +55,26 @@ jobs:
     
     - name: Build executable
       run: pyinstaller --clean build-tools\firmware_uploader.spec
+      env:
+        FW_VERSION: ${{ steps.get_version.outputs.version }}
+    
+    - name: Rename executable with version
+      shell: bash
+      run: |
+        mv dist/FirmwareUploader.exe "dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.exe"
     
     - name: Upload Windows artifact
       uses: actions/upload-artifact@v4
       with:
-        name: FirmwareUploader-Windows
-        path: dist/FirmwareUploader.exe
+        name: FirmwareUploader-Windows-v${{ steps.get_version.outputs.version }}
+        path: dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.exe
         retention-days: 30
     
     - name: Upload to release (if release)
       if: github.event_name == 'release'
       uses: softprops/action-gh-release@v1
       with:
-        files: dist/FirmwareUploader.exe
+        files: dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -61,6 +84,21 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+    
+    - name: Extract version from tag
+      id: get_version
+      run: |
+        if [[ "${{ github.event_name }}" == "release" ]]; then
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
+        elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+          VERSION="${GITHUB_REF#refs/tags/}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
+        else
+          VERSION="dev-$(git rev-parse --short HEAD)"
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION"
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -82,36 +120,38 @@ jobs:
     
     - name: Build executable
       run: pyinstaller --clean build-tools/firmware_uploader.spec
+      env:
+        FW_VERSION: ${{ steps.get_version.outputs.version }}
     
     - name: Create DMG (optional)
       run: |
         brew install create-dmg || true
         if command -v create-dmg &> /dev/null; then
           create-dmg \
-            --volname "Firmware Uploader" \
+            --volname "Firmware Uploader v${{ steps.get_version.outputs.version }}" \
             --window-pos 200 120 \
             --window-size 600 400 \
             --icon-size 100 \
             --app-drop-link 425 120 \
-            "dist/FirmwareUploader.dmg" \
+            "dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.dmg" \
             "dist/FirmwareUploader.app" || \
-          hdiutil create -volname "Firmware Uploader" -srcfolder dist/FirmwareUploader.app -ov -format UDZO dist/FirmwareUploader.dmg
+          hdiutil create -volname "Firmware Uploader v${{ steps.get_version.outputs.version }}" -srcfolder dist/FirmwareUploader.app -ov -format UDZO "dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.dmg"
         else
-          hdiutil create -volname "Firmware Uploader" -srcfolder dist/FirmwareUploader.app -ov -format UDZO dist/FirmwareUploader.dmg
+          hdiutil create -volname "Firmware Uploader v${{ steps.get_version.outputs.version }}" -srcfolder dist/FirmwareUploader.app -ov -format UDZO "dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.dmg"
         fi
     
     - name: Upload macOS app artifact
       uses: actions/upload-artifact@v4
       with:
-        name: FirmwareUploader-macOS-app
+        name: FirmwareUploader-macOS-app-v${{ steps.get_version.outputs.version }}
         path: dist/FirmwareUploader.app
         retention-days: 30
     
     - name: Upload macOS DMG artifact
       uses: actions/upload-artifact@v4
       with:
-        name: FirmwareUploader-macOS-dmg
-        path: dist/FirmwareUploader.dmg
+        name: FirmwareUploader-macOS-dmg-v${{ steps.get_version.outputs.version }}
+        path: dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.dmg
         retention-days: 30
     
     - name: Upload to release (if release)
@@ -119,7 +159,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          dist/FirmwareUploader.dmg
+          dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.dmg
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
