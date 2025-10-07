@@ -3,6 +3,8 @@ name: Build Executables
 on:
   push:
     branches: [ main ]
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0, v1.2.3, etc.
   pull_request:
     branches: [ main ]
   release:
@@ -70,11 +72,14 @@ jobs:
         path: dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.exe
         retention-days: 30
     
-    - name: Upload to release (if release)
-      if: github.event_name == 'release'
+    - name: Create Release and Upload Assets
+      if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
         files: dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.exe
+        draft: false
+        prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -129,8 +134,10 @@ jobs:
         chmod -R +x dist/FirmwareUploader.app/Contents/MacOS/
         # Remove quarantine attribute (helps with "app is damaged" error)
         xattr -cr dist/FirmwareUploader.app || true
-        # Ad-hoc code sign (allows app to run without notarization)
-        codesign --force --deep --sign - dist/FirmwareUploader.app || true
+        # Ad-hoc code sign with entitlements (allows serial port access)
+        codesign --force --deep --sign - --entitlements build-tools/entitlements.plist dist/FirmwareUploader.app || true
+        # Verify the signature
+        codesign --verify --verbose dist/FirmwareUploader.app || true
     
     - name: Create DMG (optional)
       run: |
@@ -163,12 +170,14 @@ jobs:
         path: dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.dmg
         retention-days: 30
     
-    - name: Upload to release (if release)
-      if: github.event_name == 'release'
+    - name: Create Release and Upload Assets
+      if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.dmg
+        files: dist/FirmwareUploader-v${{ steps.get_version.outputs.version }}.dmg
+        draft: false
+        prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') || contains(github.ref, '-alpha') }}
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

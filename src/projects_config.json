@@ -2,6 +2,13 @@
   "Aircue Receiver": {
     "chip": "esp32",
     "tool": "esptool",
+    "baud": "460800",
+    "address": "0x10000",
+    "port_hint": "CH9102"
+  },
+  "Aircue Receiver (Fast)": {
+    "chip": "esp32",
+    "tool": "esptool",
     "baud": "921600",
     "address": "0x10000",
     "port_hint": "CH9102"

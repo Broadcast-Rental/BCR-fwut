@@ -105,7 +105,7 @@ exe = EXE(
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
-    entitlements_file=None,
+    entitlements_file=os.path.join(project_root, 'build-tools', 'entitlements.plist') if os.name != 'nt' else None,
     icon=icon_path,  # Optional icon (will use default if not found)
     version_file=None,  # Could add a version file here if needed
 )

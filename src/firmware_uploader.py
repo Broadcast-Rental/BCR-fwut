@@ -238,6 +238,18 @@ def run_esptool_direct(config: Dict, port: str, firmware_path: str, log_widget):
                 returncode = 0
             except SystemExit as e:
                 returncode = e.code if e.code else 0
+            except StopIteration:
+                # Handle StopIteration which can occur when serial communication fails
+                output_buffer.write("\n")
+                output_buffer.write("ERROR: Serial communication failed.\n")
+                output_buffer.write("\nPossible causes:\n")
+                output_buffer.write("1. Wrong COM port selected\n")
+                output_buffer.write("2. Device not in bootloader mode (try holding BOOT button while connecting)\n")
+                output_buffer.write("3. USB cable issue (try a different cable)\n")
+                output_buffer.write("4. Wrong chip type selected\n")
+                if os.name != 'nt':
+                    output_buffer.write("5. Serial port permissions (macOS/Linux may need sudo or dialout group)\n")
+                returncode = 1
             finally:
                 # Restore original sys.argv
                 sys.argv = old_argv
