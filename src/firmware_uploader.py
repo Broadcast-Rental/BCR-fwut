@@ -124,27 +124,57 @@ def list_serial_ports() -> List[Tuple[str, str]]:
 
 def build_esptool_command(config: Dict, port: str, firmware_path: str) -> List[str]:
     """Build esptool command for ESP32 devices"""
-    # Use bundled esptool if available, otherwise use Python module
+    # Check if we're running as a frozen executable
     if getattr(sys, 'frozen', False):
-        # Running as compiled exe - esptool is bundled as Python module
+        # Running as compiled exe - check for standalone esptool first
         esptool_path = get_bundled_tool_path('esptool')
         if esptool_path != 'esptool' and os.path.exists(esptool_path):
-            # Standalone esptool executable
+            # Standalone esptool executable found
             return [
                 esptool_path,
                 "--chip", config["chip"],
                 "--baud", config["baud"],
                 "--port", port,
-                "write_flash", config["address"], firmware_path
+                "write-flash", config["address"], firmware_path
             ]
+        # If no standalone executable, try to find esptool in system PATH
+        # (user may have Python and esptool installed separately)
+        import shutil
+        esptool_cmd = shutil.which('esptool') or shutil.which('esptool.py')
+        if esptool_cmd:
+            return [
+                esptool_cmd,
+                "--chip", config["chip"],
+                "--baud", config["baud"],
+                "--port", port,
+                "write-flash", config["address"], firmware_path
+            ]
+        # Try with Python in PATH as fallback
+        python_path = shutil.which('python') or shutil.which('python3')
+        if python_path:
+            return [
+                python_path, "-m", "esptool",
+                "--chip", config["chip"],
+                "--baud", config["baud"],
+                "--port", port,
+                "write-flash", config["address"], firmware_path
+            ]
+        # Last resort: hope esptool is in PATH
+        return [
+            "esptool",
+            "--chip", config["chip"],
+            "--baud", config["baud"],
+            "--port", port,
+            "write-flash", config["address"], firmware_path
+        ]
     
-    # Use Python module (development or fallback)
+    # Use Python module (development environment)
     return [
         sys.executable, "-m", "esptool",
         "--chip", config["chip"],
         "--baud", config["baud"],
         "--port", port,
-        "write_flash", config["address"], firmware_path
+        "write-flash", config["address"], firmware_path
     ]
 
 
@@ -174,6 +204,53 @@ def build_avrdude_command(config: Dict, port: str, firmware_path: str) -> List[s
     return cmd
 
 
+def run_esptool_direct(config: Dict, port: str, firmware_path: str, log_widget):
+    """Run esptool directly by calling its main function (for frozen exe)"""
+    import io
+    import contextlib
+    
+    # Prepare arguments as if they were command-line args
+    args = [
+        "--chip", config["chip"],
+        "--baud", config["baud"],
+        "--port", port,
+        "write-flash", config["address"], firmware_path
+    ]
+    
+    # Capture stdout/stderr
+    output_buffer = io.StringIO()
+    
+    try:
+        # Import esptool and call its main function
+        import esptool
+        
+        # Redirect stdout to capture output
+        with contextlib.redirect_stdout(output_buffer), contextlib.redirect_stderr(output_buffer):
+            # Save original sys.argv
+            old_argv = sys.argv
+            try:
+                # Set sys.argv to our arguments
+                sys.argv = ['esptool.py'] + args
+                # Call esptool's main function
+                esptool.main()
+                returncode = 0
+            except SystemExit as e:
+                returncode = e.code if e.code else 0
+            finally:
+                # Restore original sys.argv
+                sys.argv = old_argv
+        
+        # Get all output
+        output = output_buffer.getvalue()
+        log_widget.insert(tk.END, output)
+        
+        return returncode
+        
+    except Exception as e:
+        log_widget.insert(tk.END, f"Error: {str(e)}\n")
+        return 1
+
+
 def flash_firmware(project_name: str, firmware_path: str, port_display: str, log_widget, button):
     """Flash firmware based on project configuration"""
     if not project_name:
@@ -201,40 +278,48 @@ def flash_firmware(project_name: str, firmware_path: str, port_display: str, log
     log_widget.insert(tk.END, f"Tool: {config['tool']}\n")
     log_widget.insert(tk.END, f"Firmware: {os.path.basename(firmware_path)}\n")
     log_widget.insert(tk.END, f"Port: {port}\n")
-    log_widget.insert(tk.END, f"{'='*60}\n")
-    log_widget.see(tk.END)
-
-    # Build command based on tool
-    if config["tool"] == "esptool":
-        cmd = build_esptool_command(config, port, firmware_path)
-    elif config["tool"] == "avrdude":
-        cmd = build_avrdude_command(config, port, firmware_path)
-    else:
-        messagebox.showerror("Error", f"Unsupported tool: {config['tool']}")
-        button.config(state=tk.NORMAL)
-        return
-
-    log_widget.insert(tk.END, f"\nCommand: {' '.join(cmd)}\n\n")
+    log_widget.insert(tk.END, f"{'='*60}\n\n")
     log_widget.see(tk.END)
 
     def run():
         try:
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True
-            )
-            for line in process.stdout:
-                log_widget.insert(tk.END, line)
+            # Check if we should call esptool directly (frozen exe) or via subprocess
+            if config["tool"] == "esptool" and getattr(sys, 'frozen', False):
+                # Running as frozen exe - call esptool directly
+                log_widget.insert(tk.END, "Running esptool (bundled)...\n\n")
                 log_widget.see(tk.END)
-            process.wait()
+                returncode = run_esptool_direct(config, port, firmware_path, log_widget)
+            else:
+                # Build command based on tool
+                if config["tool"] == "esptool":
+                    cmd = build_esptool_command(config, port, firmware_path)
+                elif config["tool"] == "avrdude":
+                    cmd = build_avrdude_command(config, port, firmware_path)
+                else:
+                    messagebox.showerror("Error", f"Unsupported tool: {config['tool']}")
+                    button.config(state=tk.NORMAL)
+                    return
+
+                log_widget.insert(tk.END, f"Command: {' '.join(cmd)}\n\n")
+                log_widget.see(tk.END)
+                
+                process = subprocess.Popen(
+                    cmd,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True
+                )
+                for line in process.stdout:
+                    log_widget.insert(tk.END, line)
+                    log_widget.see(tk.END)
+                process.wait()
+                returncode = process.returncode
             
-            if process.returncode == 0:
+            if returncode == 0:
                 log_widget.insert(tk.END, "\n✅ Flash complete!\n")
                 messagebox.showinfo("Success", "Firmware uploaded successfully!")
             else:
-                log_widget.insert(tk.END, f"\n❌ Flash failed (exit code: {process.returncode})\n")
+                log_widget.insert(tk.END, f"\n❌ Flash failed (exit code: {returncode})\n")
                 messagebox.showerror("Error", "Firmware upload failed. Check the log for details.")
                 
         except FileNotFoundError:
@@ -273,14 +358,40 @@ def select_firmware(entry, project_combo):
         entry.insert(0, file)
 
 
-def refresh_ports(combo):
-    """Refresh the list of COM ports"""
+def refresh_ports(combo, project_combo=None):
+    """Refresh the list of COM ports and auto-select best match based on port hint"""
     ports = list_serial_ports()
     combo["values"] = [p[1] for p in ports]
-    if ports:
-        combo.current(0)
-    else:
+    
+    if not ports:
         combo.set("❌ No serial ports found")
+        return
+    
+    # Try to auto-select based on project's port hint
+    best_match_idx = None
+    if project_combo:
+        project = project_combo.get()
+        if project and PROJECTS.get(project):
+            hint = PROJECTS[project].get("port_hint", "")
+            if hint:
+                # Look for port that matches the hint
+                hint_keywords = hint.lower().split()
+                best_score = 0
+                
+                for idx, (device, desc) in enumerate(ports):
+                    desc_lower = desc.lower()
+                    # Count how many hint keywords match
+                    score = sum(1 for keyword in hint_keywords if keyword in desc_lower)
+                    if score > best_score:
+                        best_score = score
+                        best_match_idx = idx
+    
+    # Set the selection
+    if best_match_idx is not None:
+        combo.current(best_match_idx)
+    else:
+        # No good match found - leave empty
+        combo.set("")
 
 
 def update_port_hint(project_combo, hint_label):
@@ -391,16 +502,20 @@ def main():
     
     port_combo = ttk.Combobox(port_frame, width=50)
     port_combo.pack(side="left", fill="x", expand=True)
-    refresh_ports(port_combo)
+    refresh_ports(port_combo, project_combo)
     
     tk.Button(
         port_frame,
         text="🔄 Refresh",
-        command=lambda: refresh_ports(port_combo)
+        command=lambda: refresh_ports(port_combo, project_combo)
     ).pack(side="left", padx=5)
     
-    # Update port hint when project changes
-    project_combo.bind("<<ComboboxSelected>>", lambda e: update_port_hint(project_combo, port_hint_label))
+    # Update port hint and refresh port selection when project changes
+    def on_project_change(event):
+        update_port_hint(project_combo, port_hint_label)
+        refresh_ports(port_combo, project_combo)
+    
+    project_combo.bind("<<ComboboxSelected>>", on_project_change)
     update_port_hint(project_combo, port_hint_label)
     
     # --- Flash button ---

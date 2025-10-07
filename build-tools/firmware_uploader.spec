@@ -41,6 +41,8 @@ a = Analysis(
     binaries=binaries,
     datas=[
         (os.path.join(project_root, 'src', 'projects_config.json'), '.'),
+        # Collect esptool data files (stub flasher files, etc.)
+        *collect_data_files('esptool'),
     ],
     hiddenimports=[
         'serial.tools.list_ports',
@@ -49,6 +51,8 @@ a = Analysis(
         'esptool',
         'esptool.cmds',
         'esptool.loader',
+        'esptool.targets',
+        'esptool.util',
     ],
     hookspath=[],
     hooksconfig={},
