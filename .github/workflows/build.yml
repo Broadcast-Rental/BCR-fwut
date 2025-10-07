@@ -123,6 +123,15 @@ jobs:
       env:
         FW_VERSION: ${{ steps.get_version.outputs.version }}
     
+    - name: Fix macOS permissions and quarantine
+      run: |
+        # Make the app executable
+        chmod -R +x dist/FirmwareUploader.app/Contents/MacOS/
+        # Remove quarantine attribute (helps with "app is damaged" error)
+        xattr -cr dist/FirmwareUploader.app || true
+        # Ad-hoc code sign (allows app to run without notarization)
+        codesign --force --deep --sign - dist/FirmwareUploader.app || true
+    
     - name: Create DMG (optional)
       run: |
         brew install create-dmg || true
