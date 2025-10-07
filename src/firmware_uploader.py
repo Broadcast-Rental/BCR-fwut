@@ -126,17 +126,8 @@ def build_esptool_command(config: Dict, port: str, firmware_path: str) -> List[s
     """Build esptool command for ESP32 devices"""
     # Check if we're running as a frozen executable
     if getattr(sys, 'frozen', False):
-        # On macOS frozen apps, use the bundled Python with esptool module
-        if os.name != 'nt':
-            # macOS/Linux - use bundled Python interpreter with esptool module
-            return [
-                sys.executable, "-m", "esptool",
-                "--chip", config["chip"],
-                "--baud", config["baud"],
-                "--port", port,
-                "write-flash", config["address"], firmware_path
-            ]
-        
+        # Frozen apps should use run_esptool_direct() instead
+        # This function is only called in development mode or as fallback
         # Windows - check for standalone esptool first
         esptool_path = get_bundled_tool_path('esptool')
         if esptool_path != 'esptool' and os.path.exists(esptool_path):
@@ -300,13 +291,12 @@ def flash_firmware(project_name: str, firmware_path: str, port_display: str, log
     def run():
         try:
             # Check if we should call esptool directly (frozen exe) or via subprocess
-            # Note: On macOS frozen apps, we prefer subprocess over direct call
+            # Note: For frozen apps, we use direct Python call to avoid subprocess issues
             use_direct_esptool = (config["tool"] == "esptool" and 
-                                  getattr(sys, 'frozen', False) and 
-                                  os.name == 'nt')  # Only use direct call on Windows
+                                  getattr(sys, 'frozen', False))
             
             if use_direct_esptool:
-                # Running as frozen exe on Windows - call esptool directly
+                # Running as frozen exe - call esptool directly (avoids subprocess issues)
                 log_widget.insert(tk.END, "Running esptool (bundled)...\n\n")
                 log_widget.see(tk.END)
                 returncode = run_esptool_direct(config, port, firmware_path, log_widget)
