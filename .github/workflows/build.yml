@@ -48,11 +48,29 @@ jobs:
     
     - name: Install avrdude
       run: |
-        choco install avrdude -y
-        mkdir tools
-        Copy-Item "C:\ProgramData\chocolatey\lib\avrdude\tools\avrdude.exe" -Destination "tools\"
-        Copy-Item "C:\ProgramData\chocolatey\lib\avrdude\tools\avrdude.conf" -Destination "tools\"
-        Copy-Item "C:\ProgramData\chocolatey\lib\avrdude\tools\*.dll" -Destination "tools\" -ErrorAction SilentlyContinue
+        # Install Arduino CLI which includes complete avrdude with all DLLs
+        choco install arduino-cli -y
+        arduino-cli core install arduino:avr
+        
+        # Find Arduino installation
+        $arduinoPath = "$env:LOCALAPPDATA\Arduino15\packages\arduino\tools\avrdude"
+        $avrdudeVersion = Get-ChildItem $arduinoPath | Select-Object -First 1 -ExpandProperty Name
+        $avrdudeBin = "$arduinoPath\$avrdudeVersion\bin"
+        $avrdudeEtc = "$arduinoPath\$avrdudeVersion\etc"
+        
+        Write-Host "Using avrdude from: $avrdudeBin"
+        
+        # Create tools directory
+        mkdir tools -ErrorAction SilentlyContinue
+        
+        # Copy avrdude and ALL its dependencies
+        Copy-Item "$avrdudeBin\avrdude.exe" -Destination "tools\" -Force
+        Copy-Item "$avrdudeEtc\avrdude.conf" -Destination "tools\" -Force
+        Get-ChildItem "$avrdudeBin\*.dll" | Copy-Item -Destination "tools\" -Force
+        
+        # List what we bundled
+        Write-Host "`nBundled avrdude files:"
+        Get-ChildItem "tools\" | Format-Table Name, Length
       shell: powershell
     
     - name: Set version in environment

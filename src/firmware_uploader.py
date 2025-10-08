@@ -73,19 +73,27 @@ def get_bundled_tool_path(tool_name):
 # ─────────────────────────────
 # PROJECT CONFIGURATIONS
 # ─────────────────────────────
-PROJECTS = {
+# Advanced/generic boards (hidden by default)
+ADVANCED_PROJECTS = {
     "ESP32 - Generic": {
         "chip": "esp32",
         "tool": "esptool",
-        "baud": "921600",
+        "baud": "460800",
         "address": "0x10000",
         "port_hint": "CH9102"
     },
     "ESP32-S3": {
         "chip": "esp32s3",
         "tool": "esptool",
-        "baud": "921600",
+        "baud": "460800",
         "address": "0x10000",
+        "port_hint": "USB JTAG"
+    },
+    "ESP32-C3": {
+        "chip": "esp32c3",
+        "tool": "esptool",
+        "baud": "460800",
+        "address": "0x0",
         "port_hint": "USB JTAG"
     },
     "Olimex ESP32-POE-ISO": {
@@ -118,9 +126,12 @@ PROJECTS = {
     }
 }
 
+# All projects combined
+PROJECTS = {}
+
 
 def load_custom_projects():
-    """Load additional projects from external config file if exists"""
+    """Load user projects from external config file if exists"""
     # Try bundled config first (for compiled exe)
     config_file = get_resource_path("projects_config.json")
     
@@ -140,6 +151,21 @@ def load_custom_projects():
                 PROJECTS.update(custom)
         except Exception as e:
             print(f"Warning: Could not load {config_file}: {e}")
+
+def get_project_list(show_advanced=False):
+    """Get list of project names based on advanced mode"""
+    project_list = list(PROJECTS.keys())
+    if show_advanced:
+        project_list.extend(ADVANCED_PROJECTS.keys())
+    return project_list
+
+def get_project_config(project_name):
+    """Get configuration for a project (checks both user and advanced projects)"""
+    if project_name in PROJECTS:
+        return PROJECTS[project_name]
+    elif project_name in ADVANCED_PROJECTS:
+        return ADVANCED_PROJECTS[project_name]
+    return None
 
 
 def list_serial_ports() -> List[Tuple[str, str]]:
@@ -311,7 +337,7 @@ def flash_firmware(project_name: str, firmware_path: str, port_display: str, log
         messagebox.showwarning("Missing port", "Please select a serial port first.")
         return
 
-    config = PROJECTS.get(project_name)
+    config = get_project_config(project_name)
     if not config:
         messagebox.showerror("Error", f"Unknown project: {project_name}")
         return
@@ -393,8 +419,9 @@ def select_firmware(entry, project_combo):
     project = project_combo.get()
     
     # Determine file types based on project
-    if project and PROJECTS.get(project):
-        tool = PROJECTS[project]["tool"]
+    config = get_project_config(project)
+    if config:
+        tool = config["tool"]
         if tool == "esptool":
             filetypes = [("BIN files", "*.bin"), ("All files", "*.*")]
         elif tool == "avrdude":
@@ -423,8 +450,9 @@ def refresh_ports(combo, project_combo=None):
     best_match_idx = None
     if project_combo:
         project = project_combo.get()
-        if project and PROJECTS.get(project):
-            hint = PROJECTS[project].get("port_hint", "")
+        config = get_project_config(project)
+        if config:
+            hint = config.get("port_hint", "")
             if hint:
                 # Look for port that matches the hint
                 hint_keywords = hint.lower().split()
@@ -449,8 +477,9 @@ def refresh_ports(combo, project_combo=None):
 def update_port_hint(project_combo, hint_label):
     """Update the port hint based on selected project"""
     project = project_combo.get()
-    if project and PROJECTS.get(project):
-        hint = PROJECTS[project].get("port_hint", "")
+    config = get_project_config(project)
+    if config:
+        hint = config.get("port_hint", "")
         hint_label.config(text=f"Serial Port (look for: {hint}):" if hint else "Serial Port:")
     else:
         hint_label.config(text="Serial Port:")
@@ -529,6 +558,7 @@ def main():
         command=lambda: messagebox.showinfo(
             "How to Use",
             "1. Select your project from the dropdown\n"
+            "   (Click 'Advanced' for generic boards)\n"
             "2. Browse for your firmware file (.bin or .hex)\n"
             "3. Connect your device via USB\n"
             "4. Select the COM port\n"
@@ -554,8 +584,47 @@ def main():
     )
     
     # --- Project selector ---
-    tk.Label(root, text="Project:", font=("Arial", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
-    project_combo = ttk.Combobox(root, values=list(PROJECTS.keys()), width=60, state="readonly")
+    project_label_frame = tk.Frame(root)
+    project_label_frame.pack(anchor="w", padx=10, pady=(10, 0), fill="x")
+    
+    tk.Label(project_label_frame, text="Project:", font=("Arial", 10, "bold")).pack(side="left")
+    
+    # Advanced mode toggle
+    show_advanced = tk.BooleanVar(value=False)
+    
+    def toggle_advanced():
+        """Toggle between user projects and all projects"""
+        is_advanced = show_advanced.get()
+        projects = get_project_list(show_advanced=is_advanced)
+        
+        # Store current selection
+        current = project_combo.get()
+        
+        # Update combo box values
+        project_combo["values"] = projects
+        
+        # Try to keep current selection if still valid
+        if current in projects:
+            project_combo.set(current)
+        elif projects:
+            project_combo.current(0)
+        
+        # Update button text
+        if is_advanced:
+            advanced_btn.config(text="✓ Advanced", relief=tk.SUNKEN)
+        else:
+            advanced_btn.config(text="Advanced", relief=tk.RAISED)
+    
+    advanced_btn = tk.Button(
+        project_label_frame,
+        text="Advanced",
+        command=lambda: [show_advanced.set(not show_advanced.get()), toggle_advanced()],
+        relief=tk.RAISED,
+        padx=10
+    )
+    advanced_btn.pack(side="right", padx=(0, 10))
+    
+    project_combo = ttk.Combobox(root, values=get_project_list(show_advanced=False), width=60, state="readonly")
     project_combo.pack(anchor="w", padx=10, pady=5)
     if PROJECTS:
         project_combo.current(0)
@@ -620,7 +689,8 @@ def main():
     log.pack(fill="both", expand=True, padx=10, pady=(0, 10))
     
     log.insert(tk.END, f"Firmware Uploader v{VERSION}\n")
-    log.insert(tk.END, f"Loaded {len(PROJECTS)} project configurations\n")
+    log.insert(tk.END, f"Loaded {len(PROJECTS)} project configuration(s)\n")
+    log.insert(tk.END, f"Available: {len(ADVANCED_PROJECTS)} advanced board(s)\n")
     log.insert(tk.END, "="*60 + "\n\n")
     
     root.mainloop()
