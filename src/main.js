@@ -190,65 +190,46 @@ ipcMain.handle('flash-firmware', async (event, { projectName, firmwarePath, port
     let args;
 
     if (config.tool === 'esptool') {
-      // Try standalone esptool first (installed via pipx), then Python module
-      const esptoolCommands = [
-        'esptool',  // Standalone executable (pipx)
-        'esptool.py'  // Python script
-      ];
+      // Use bundled esptool
+      const bundledEsptoolPath = path.join(__dirname, 'tools', 'esptool_launcher.py');
       
-      let esptoolCmd = null;
+      // Check if bundled esptool exists
+      if (!fs.existsSync(bundledEsptoolPath)) {
+        reject(new Error('Bundled esptool not found. Please rebuild the application.'));
+        return;
+      }
       
-      // Check for standalone esptool first
-      for (const cmd of esptoolCommands) {
+      // Find Python
+      const pythonCommands = ['python3', 'python', '/usr/bin/python3', '/usr/bin/python'];
+      let pythonCmd = null;
+      
+      for (const cmd of pythonCommands) {
         try {
           const { execSync } = require('child_process');
-          execSync(`${cmd} --help`, { stdio: 'ignore' });
-          esptoolCmd = cmd;
+          execSync(`${cmd} --version`, { stdio: 'ignore' });
+          pythonCmd = cmd;
           break;
         } catch (e) {
           // Continue to next command
         }
       }
       
-      if (esptoolCmd === 'esptool' || esptoolCmd === 'esptool.py') {
-        // Use standalone esptool
-        cmd = esptoolCmd;
-        args = [
-          '--chip', config.chip,
-          '--baud', config.baud,
-          '--port', port,
-          'write-flash', config.address, firmwarePath
-        ];
-      } else {
-        // Fallback to Python module
-        const pythonCommands = ['python3', 'python', '/usr/bin/python3', '/usr/bin/python'];
-        let pythonCmd = null;
-        
-        for (const cmd of pythonCommands) {
-          try {
-            const { execSync } = require('child_process');
-            execSync(`${cmd} --version`, { stdio: 'ignore' });
-            pythonCmd = cmd;
-            break;
-          } catch (e) {
-            // Continue to next command
-          }
-        }
-        
-        if (!pythonCmd) {
-          reject(new Error('Neither esptool standalone nor Python found. Please install esptool via pipx or Python with esptool module'));
-          return;
-        }
-        
-        cmd = pythonCmd;
-        args = [
-          '-m', 'esptool',
-          '--chip', config.chip,
-          '--baud', config.baud,
-          '--port', port,
-          'write-flash', config.address, firmwarePath
-        ];
+      if (!pythonCmd) {
+        reject(new Error('Python not found. Please install Python 3.x:\n\n' +
+          'macOS: brew install python\n' +
+          'Windows: Download Python from python.org\n\n' +
+          'esptool is bundled with this app, but Python is required to run it.'));
+        return;
       }
+      
+      cmd = pythonCmd;
+      args = [
+        bundledEsptoolPath,
+        '--chip', config.chip,
+        '--baud', config.baud,
+        '--port', port,
+        'write-flash', config.address, firmwarePath
+      ];
     } else if (config.tool === 'avrdude') {
       cmd = 'avrdude';
       args = [
