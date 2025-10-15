@@ -77,24 +77,6 @@
       ],
       "publisherName": "Broadcast Rental"
     },
-    "linux": {
-      "icon": "build-tools/assets/logo.png",
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "deb",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "category": "Development"
-    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,

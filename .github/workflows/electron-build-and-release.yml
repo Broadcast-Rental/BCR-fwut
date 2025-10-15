@@ -1,4 +1,4 @@
-name: Build and Release
+name: Electron Build and Release
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, windows-latest]
         
     steps:
     - name: Checkout code
@@ -41,11 +41,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install esptool
         
-    - name: Install avrdude (Linux only)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y avrdude
         
     - name: Install avrdude (macOS only)
       if: matrix.os == 'macos-latest'
@@ -70,7 +65,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.os }}-build
         path: |
@@ -90,11 +85,10 @@ jobs:
           ### Downloads
           - **macOS**: Download the `.dmg` file below
           - **Windows**: Download the `.exe` installer below
-          - **Linux**: Download the `.AppImage` or `.deb` file below
           
           ### Installation
           1. Download the appropriate file for your operating system
-          2. Run the installer (Windows/macOS) or make executable and run (Linux)
+          2. Run the installer (Windows/macOS)
           3. The app will be installed and ready to use
           
           ### Requirements
@@ -111,8 +105,6 @@ jobs:
         files: |
           dist/*.dmg
           dist/*.exe
-          dist/*.AppImage
-          dist/*.deb
         draft: false
         prerelease: false
       env:
