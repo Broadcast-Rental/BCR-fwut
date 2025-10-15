@@ -116,6 +116,7 @@ class FirmwareUploader {
         
         // IPC listeners
         ipcRenderer.on('flash-output', (event, data) => this.addLogEntry(data, 'info'));
+        ipcRenderer.on('show-python-setup', () => this.showPythonSetup());
     }
 
     async loadProjects() {
@@ -428,6 +429,28 @@ class FirmwareUploader {
     showNotification(title, message) {
         // Simple notification - in a real app you might want to use a proper notification library
         this.log(`${title}: ${message}`, 'info');
+    }
+
+    showPythonSetup() {
+        // Create a new window for Python installer
+        const { remote } = require('electron');
+        const installerWindow = new remote.BrowserWindow({
+            width: 700,
+            height: 600,
+            parent: remote.getCurrentWindow(),
+            modal: true,
+            resizable: false,
+            webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false
+            }
+        });
+
+        installerWindow.loadFile('python-installer.html');
+        installerWindow.setTitle('Python Installer - Firmware Uploader');
+        
+        // Center the window
+        installerWindow.center();
     }
 }
 

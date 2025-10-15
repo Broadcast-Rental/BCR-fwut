@@ -190,41 +190,24 @@ ipcMain.handle('flash-firmware', async (event, { projectName, firmwarePath, port
     let args;
 
     if (config.tool === 'esptool') {
-      // Use bundled esptool
-      const bundledEsptoolPath = path.join(__dirname, 'tools', 'esptool_launcher.py');
+      // Use platform-specific launcher
+      let launcherPath;
       
-      // Check if bundled esptool exists
-      if (!fs.existsSync(bundledEsptoolPath)) {
-        reject(new Error('Bundled esptool not found. Please rebuild the application.'));
+      if (process.platform === 'win32') {
+        launcherPath = path.join(__dirname, 'tools', 'esptool_launcher.bat');
+      } else {
+        launcherPath = path.join(__dirname, 'tools', 'esptool_launcher.sh');
+      }
+      
+      // Check if launcher exists
+      if (!fs.existsSync(launcherPath)) {
+        reject(new Error('Bundled esptool launcher not found. Please rebuild the application.'));
         return;
       }
       
-      // Find Python
-      const pythonCommands = ['python3', 'python', '/usr/bin/python3', '/usr/bin/python'];
-      let pythonCmd = null;
-      
-      for (const cmd of pythonCommands) {
-        try {
-          const { execSync } = require('child_process');
-          execSync(`${cmd} --version`, { stdio: 'ignore' });
-          pythonCmd = cmd;
-          break;
-        } catch (e) {
-          // Continue to next command
-        }
-      }
-      
-      if (!pythonCmd) {
-        reject(new Error('Python not found. Please install Python 3.x:\n\n' +
-          'macOS: brew install python\n' +
-          'Windows: Download Python from python.org\n\n' +
-          'esptool is bundled with this app, but Python is required to run it.'));
-        return;
-      }
-      
-      cmd = pythonCmd;
+      // Use the launcher directly (it will handle Python detection internally)
+      cmd = launcherPath;
       args = [
-        bundledEsptoolPath,
         '--chip', config.chip,
         '--baud', config.baud,
         '--port', port,

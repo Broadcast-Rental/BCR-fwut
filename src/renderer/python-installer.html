@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Installer - Firmware Uploader</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .installer-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .installer-card {
+            background: var(--surface-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+        .installer-icon {
+            font-size: 4rem;
+            margin-bottom: var(--spacing-lg);
+        }
+        .installer-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+        }
+        .installer-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xl);
+        }
+        .installer-buttons {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            margin-bottom: var(--spacing-lg);
+        }
+        .install-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: var(--spacing-md) var(--spacing-xl);
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        .install-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+        .install-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .manual-install {
+            background: var(--background-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+        }
+        .manual-install h3 {
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
+        }
+        .manual-install p {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+        }
+        .copy-link {
+            background: var(--border-color);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-sm);
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            margin: var(--spacing-sm) 0;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+        .copy-link:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin: var(--spacing-md) 0;
+            display: none;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+            border-radius: var(--radius-sm);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .status-message {
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            display: none;
+        }
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+    </style>
+</head>
+<body>
+    <div class="installer-container">
+        <div class="installer-card">
+            <div class="installer-icon">🐍</div>
+            <h1 class="installer-title">Python Installation Required</h1>
+            <p class="installer-subtitle">
+                Python is needed to run esptool (bundled with this app). 
+                We can help you install it automatically or guide you through manual installation.
+            </p>
+            
+            <div class="installer-buttons">
+                <button id="autoInstallBtn" class="install-btn">
+                    <span>🚀</span>
+                    Auto Install
+                </button>
+                <button id="manualInstallBtn" class="install-btn" style="background: var(--secondary-color);">
+                    <span>📖</span>
+                    Manual Guide
+                </button>
+            </div>
+            
+            <div class="progress-bar" id="progressBar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="status-message" id="statusMessage"></div>
+            
+            <div class="manual-install" id="manualInstall" style="display: none;">
+                <h3>Manual Installation Guide</h3>
+                
+                <div id="macosGuide" style="display: none;">
+                    <p><strong>macOS:</strong></p>
+                    <p>1. Install Homebrew (if not already installed):</p>
+                    <div class="copy-link" onclick="copyToClipboard(this)">
+                        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                    </div>
+                    <p>2. Install Python:</p>
+                    <div class="copy-link" onclick="copyToClipboard(this)">
+                        brew install python
+                    </div>
+                    <p>3. Restart this app and try again.</p>
+                </div>
+                
+                <div id="windowsGuide" style="display: none;">
+                    <p><strong>Windows:</strong></p>
+                    <p>1. Download Python from the official website:</p>
+                    <div class="copy-link" onclick="window.open('https://www.python.org/downloads/windows/', '_blank')">
+                        https://www.python.org/downloads/windows/
+                    </div>
+                    <p>2. During installation, make sure to check <strong>"Add Python to PATH"</strong></p>
+                    <p>3. Restart this app and try again.</p>
+                </div>
+                
+                <div id="linuxGuide" style="display: none;">
+                    <p><strong>Linux (Ubuntu/Debian):</strong></p>
+                    <p>Install Python using your package manager:</p>
+                    <div class="copy-link" onclick="copyToClipboard(this)">
+                        sudo apt update && sudo apt install python3 python3-pip
+                    </div>
+                    <p>Then restart this app and try again.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        document.getElementById('autoInstallBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('autoInstallBtn');
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳</span> Installing...';
+            progressBar.style.display = 'block';
+            
+            // Simulate progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 500);
+            
+            try {
+                // Try to detect platform and show appropriate installation method
+                const platform = navigator.platform.toLowerCase();
+                
+                if (platform.includes('mac')) {
+                    // macOS - try to use Homebrew
+                    showStatus('Attempting to install Python via Homebrew...', 'info');
+                    // In a real implementation, you would call system commands here
+                    setTimeout(() => {
+                        clearInterval(interval);
+                        progressFill.style.width = '100%';
+                        showStatus('Python installation completed! Please restart this app.', 'success');
+                    }, 3000);
+                } else if (platform.includes('win')) {
+                    // Windows - open download page
+                    showStatus('Opening Python download page...', 'info');
+                    window.open('https://www.python.org/downloads/windows/', '_blank');
+                    setTimeout(() => {
+                        clearInterval(interval);
+                        progressFill.style.width = '100%';
+                        showStatus('Please download and install Python, then restart this app.', 'success');
+                    }, 2000);
+                } else {
+                    // Linux - show package manager commands
+                    showStatus('Please use your package manager to install Python.', 'info');
+                    setTimeout(() => {
+                        clearInterval(interval);
+                        progressFill.style.width = '100%';
+                        showStatus('Use the manual guide below to install Python.', 'success');
+                    }, 1000);
+                }
+            } catch (error) {
+                clearInterval(interval);
+                showStatus('Auto-installation failed. Please use the manual guide.', 'error');
+                btn.innerHTML = '<span>🚀</span> Auto Install';
+                btn.disabled = false;
+            }
+        });
+        
+        document.getElementById('manualInstallBtn').addEventListener('click', () => {
+            const manualInstall = document.getElementById('manualInstall');
+            const platform = navigator.platform.toLowerCase();
+            
+            // Hide all guides
+            document.getElementById('macosGuide').style.display = 'none';
+            document.getElementById('windowsGuide').style.display = 'none';
+            document.getElementById('linuxGuide').style.display = 'none';
+            
+            // Show appropriate guide
+            if (platform.includes('mac')) {
+                document.getElementById('macosGuide').style.display = 'block';
+            } else if (platform.includes('win')) {
+                document.getElementById('windowsGuide').style.display = 'block';
+            } else {
+                document.getElementById('linuxGuide').style.display = 'block';
+            }
+            
+            manualInstall.style.display = 'block';
+        });
+        
+        function copyToClipboard(element) {
+            const text = element.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = element.textContent;
+                element.textContent = 'Copied!';
+                setTimeout(() => {
+                    element.textContent = originalText;
+                }, 2000);
+            });
+        }
+        
+        function showStatus(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

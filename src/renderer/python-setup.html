@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Setup - Firmware Uploader</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .setup-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .setup-step {
+            background: var(--surface-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            box-shadow: var(--shadow-md);
+        }
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            font-weight: 600;
+            margin-right: var(--spacing-md);
+        }
+        .step-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            align-items: center;
+        }
+        .step-content {
+            margin-left: calc(32px + var(--spacing-md));
+        }
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            margin: var(--spacing-md) 0;
+            overflow-x: auto;
+        }
+        .copy-btn {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            cursor: pointer;
+            margin-left: var(--spacing-sm);
+        }
+        .copy-btn:hover {
+            background: #475569;
+        }
+        .download-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+        .download-link {
+            display: block;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .download-link:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+        .back-btn {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: var(--spacing-lg);
+        }
+        .back-btn:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <button class="back-btn" onclick="window.history.back()">
+            ← Back to App
+        </button>
+        
+        <h1>🐍 Python Setup Guide</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+            Python is required to run esptool (which is bundled with this app). Follow these steps to install Python on your system.
+        </p>
+
+        <div class="setup-step">
+            <div class="step-title">
+                <span class="step-number">1</span>
+                Check if Python is already installed
+            </div>
+            <div class="step-content">
+                <p>First, let's check if Python is already installed on your system:</p>
+                <div class="code-block">
+                    python3 --version
+                </div>
+                <p>If you see a version number (like "Python 3.9.7"), Python is already installed! You can skip to step 3.</p>
+            </div>
+        </div>
+
+        <div class="setup-step">
+            <div class="step-title">
+                <span class="step-number">2</span>
+                Install Python
+            </div>
+            <div class="step-content">
+                <h3>macOS:</h3>
+                <p><strong>Option A - Using Homebrew (Recommended):</strong></p>
+                <div class="code-block">
+                    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"<br>
+                    brew install python
+                </div>
+                
+                <p><strong>Option B - Download from python.org:</strong></p>
+                <div class="download-links">
+                    <a href="https://www.python.org/downloads/macos/" class="download-link" target="_blank">
+                        Download Python for macOS
+                    </a>
+                </div>
+
+                <h3>Windows:</h3>
+                <p><strong>Download from python.org:</strong></p>
+                <div class="download-links">
+                    <a href="https://www.python.org/downloads/windows/" class="download-link" target="_blank">
+                        Download Python for Windows
+                    </a>
+                </div>
+                <p><strong>Important:</strong> During installation, make sure to check "Add Python to PATH"</p>
+
+                <h3>Linux (Ubuntu/Debian):</h3>
+                <div class="code-block">
+                    sudo apt update<br>
+                    sudo apt install python3 python3-pip
+                </div>
+            </div>
+        </div>
+
+        <div class="setup-step">
+            <div class="step-title">
+                <span class="step-number">3</span>
+                Verify Installation
+            </div>
+            <div class="step-content">
+                <p>After installation, verify Python is working:</p>
+                <div class="code-block">
+                    python3 --version
+                </div>
+                <p>You should see something like "Python 3.9.7" or similar.</p>
+            </div>
+        </div>
+
+        <div class="setup-step">
+            <div class="step-title">
+                <span class="step-number">4</span>
+                Test the Firmware Uploader
+            </div>
+            <div class="step-content">
+                <p>Now go back to the Firmware Uploader app and try flashing firmware again. The app should now be able to use the bundled esptool with your Python installation.</p>
+                <p><strong>Note:</strong> esptool is already bundled with this app, so you don't need to install it separately!</p>
+            </div>
+        </div>
+
+        <div class="setup-step">
+            <div class="step-title">
+                <span class="step-number">?</span>
+                Troubleshooting
+            </div>
+            <div class="step-content">
+                <h3>If Python is still not found:</h3>
+                <ul>
+                    <li><strong>Windows:</strong> Restart your computer after installing Python</li>
+                    <li><strong>macOS:</strong> Try using <code>python</code> instead of <code>python3</code></li>
+                    <li><strong>All platforms:</strong> Make sure Python is in your system PATH</li>
+                </ul>
+                
+                <h3>Alternative commands to try:</h3>
+                <div class="code-block">
+                    python --version<br>
+                    /usr/bin/python3 --version<br>
+                    /usr/local/bin/python3 --version
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add copy functionality to code blocks
+        document.querySelectorAll('.code-block').forEach(block => {
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-btn';
+            copyBtn.textContent = 'Copy';
+            copyBtn.onclick = () => {
+                const text = block.textContent.trim();
+                navigator.clipboard.writeText(text).then(() => {
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => copyBtn.textContent = 'Copy', 2000);
+                });
+            };
+            block.style.position = 'relative';
+            block.appendChild(copyBtn);
+        });
+    </script>
+</body>
+</html>
