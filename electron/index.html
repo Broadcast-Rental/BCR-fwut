@@ -16,59 +16,64 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Project Configuration -->
-            <section class="section">
-                <div class="section-header">
-                    <h2>📋 Project Configuration</h2>
-                    <button id="advanced-btn" class="btn btn-secondary">Advanced</button>
-                </div>
-                <div class="form-group">
-                    <select id="project-select" class="select">
-                        <option value="Aircue Receiver">Aircue Receiver</option>
-                        <option value="Aircue Indoor unit">Aircue Indoor unit</option>
-                        <option value="Aircue Transmitter">Aircue Transmitter</option>
-                    </select>
-                </div>
-            </section>
+            <!-- Left Panel - Actions -->
+            <div class="actions-panel">
+                <!-- Project Configuration -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2>📋 Project Configuration</h2>
+                        <button id="advanced-btn" class="btn btn-secondary">Advanced</button>
+                    </div>
+                    <div class="form-group">
+                        <select id="project-select" class="select">
+                            <option value="Aircue Receiver">Aircue Receiver</option>
+                            <option value="Aircue Indoor unit">Aircue Indoor unit</option>
+                            <option value="Aircue Transmitter">Aircue Transmitter</option>
+                        </select>
+                    </div>
+                </section>
 
-            <!-- Firmware File -->
-            <section class="section">
-                <div class="section-header">
-                    <h2>📁 Firmware File</h2>
-                </div>
-                <div class="form-group">
-                    <input type="text" id="firmware-path" class="input" placeholder="Select firmware file...">
-                    <button id="browse-btn" class="btn btn-primary">📂 Browse</button>
-                </div>
-            </section>
+                <!-- Firmware File -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2>📁 Firmware File</h2>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="firmware-path" class="input" placeholder="Select firmware file...">
+                        <button id="browse-btn" class="btn btn-primary">📂 Browse</button>
+                    </div>
+                </section>
 
-            <!-- Serial Port -->
-            <section class="section">
-                <div class="section-header">
-                    <h2>🔌 Serial Port</h2>
-                </div>
-                <div class="form-group">
-                    <select id="port-select" class="select">
-                        <option value="">Select serial port...</option>
-                    </select>
-                    <button id="refresh-btn" class="btn btn-secondary">🔄 Refresh</button>
-                </div>
-            </section>
+                <!-- Serial Port -->
+                <section class="section">
+                    <div class="section-header">
+                        <h2>🔌 Serial Port</h2>
+                    </div>
+                    <div class="form-group">
+                        <select id="port-select" class="select">
+                            <option value="">Select serial port...</option>
+                        </select>
+                        <button id="refresh-btn" class="btn btn-secondary">🔄 Refresh</button>
+                    </div>
+                </section>
 
-            <!-- Upload Button -->
-            <div class="upload-section">
-                <button id="upload-btn" class="btn btn-success btn-large">🚀 Upload Firmware</button>
+                <!-- Upload Button -->
+                <div class="upload-section">
+                    <button id="upload-btn" class="btn btn-success btn-large">🚀 Upload Firmware</button>
+                </div>
             </div>
 
-            <!-- Log Output -->
-            <section class="section log-section">
-                <div class="section-header">
-                    <h2>📊 Output Log</h2>
-                </div>
-                <div class="log-container">
-                    <pre id="log-output" class="log-output"></pre>
-                </div>
-            </section>
+            <!-- Right Panel - Log -->
+            <div class="log-panel">
+                <section class="section log-section">
+                    <div class="section-header">
+                        <h2>📊 Output Log</h2>
+                    </div>
+                    <div class="log-container">
+                        <pre id="log-output" class="log-output"></pre>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 
