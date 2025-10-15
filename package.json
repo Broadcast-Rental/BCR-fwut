@@ -1,0 +1,53 @@
+{
+  "name": "firmware-uploader",
+  "version": "1.0.0",
+  "description": "Modern firmware uploader for ESP32, Arduino and other devices",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux"
+  },
+  "keywords": [
+    "firmware",
+    "uploader",
+    "esp32",
+    "arduino",
+    "electron"
+  ],
+  "author": "Broadcast Rental",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.6.4"
+  },
+  "dependencies": {
+    "serialport": "^12.0.0"
+  },
+  "build": {
+    "appId": "com.broadcastrental.firmwareuploader",
+    "productName": "Firmware Uploader",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "build-tools/**/*",
+      "node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "icon": "build-tools/assets/logo.png"
+    },
+    "win": {
+      "icon": "build-tools/assets/logo.ico"
+    },
+    "linux": {
+      "icon": "build-tools/assets/logo.png"
+    }
+  }
+}
