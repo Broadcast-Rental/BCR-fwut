@@ -516,11 +516,7 @@ def main():
     
     root = tk.Tk()
     root.title(f"Firmware Uploader v{VERSION}")
-    root.geometry("1200x900")
-    root.minsize(1000, 800)
-    
-    # Configure amazing modern styling
-    root.configure(bg="#0f0f23")
+    root.geometry("700x600")
     
     # Set window icon
     try:
@@ -545,64 +541,17 @@ def main():
         # If icon loading fails, just continue without it
         print(f"Could not load icon: {e}")
     
-    # Configure amazing modern styles
-    style = ttk.Style()
-    style.theme_use('clam')
-    
-    # Amazing button styles
-    style.configure('Modern.TButton', 
-                   font=('SF Pro Display', 13, 'bold'),
-                   padding=(25, 15),
-                   relief='flat',
-                   borderwidth=0,
-                   background='#1e293b',
-                   foreground='#ffffff')
-    
-    style.configure('Primary.TButton',
-                   font=('SF Pro Display', 14, 'bold'),
-                   padding=(30, 18),
-                   relief='flat',
-                   borderwidth=0,
-                   background='#10b981',
-                   foreground='#ffffff')
-    
-    style.configure('Success.TButton',
-                   font=('SF Pro Display', 14, 'bold'),
-                   padding=(30, 18),
-                   relief='flat',
-                   borderwidth=0,
-                   background='#10b981',
-                   foreground='#ffffff')
-    
-    style.configure('Modern.TCombobox',
-                   font=('SF Pro Display', 13, 'bold'),
-                   padding=(20, 12),
-                   fieldbackground='#1e293b',
-                   background='#1e293b',
-                   foreground='#ffffff',
-                   borderwidth=2,
-                   bordercolor='#3b82f6')
-    
-    style.configure('Modern.TEntry',
-                   font=('SF Pro Display', 13, 'bold'),
-                   padding=(20, 12),
-                   fieldbackground='#1e293b',
-                   background='#1e293b',
-                   foreground='#ffffff',
-                   borderwidth=2,
-                   bordercolor='#3b82f6')
-    
-    # Amazing menu bar
-    menubar = tk.Menu(root, bg="#1e293b", fg="#ffffff", font=('SF Pro Display', 12, 'bold'), activebackground="#10b981", activeforeground="#ffffff")
+    # Menu bar
+    menubar = tk.Menu(root)
     root.config(menu=menubar)
     
-    file_menu = tk.Menu(menubar, tearoff=0, bg="#1e293b", fg="#ffffff", font=('SF Pro Display', 12, 'bold'), activebackground="#10b981", activeforeground="#ffffff")
+    file_menu = tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label="File", menu=file_menu)
     file_menu.add_command(label="Export Sample Config", command=export_sample_config)
     file_menu.add_separator()
     file_menu.add_command(label="Exit", command=root.quit)
     
-    help_menu = tk.Menu(menubar, tearoff=0, bg="#1e293b", fg="#ffffff", font=('SF Pro Display', 12, 'bold'), activebackground="#10b981", activeforeground="#ffffff")
+    help_menu = tk.Menu(menubar, tearoff=0)
     menubar.add_cascade(label="Help", menu=help_menu)
     help_menu.add_command(
         label="How to Use",
@@ -634,44 +583,11 @@ def main():
         )
     )
     
-    # Amazing main container
-    main_container = tk.Frame(root, bg="#0f0f23", padx=40, pady=40)
-    main_container.pack(fill="both", expand=True)
+    # --- Project selector ---
+    project_label_frame = tk.Frame(root)
+    project_label_frame.pack(anchor="w", padx=10, pady=(10, 0), fill="x")
     
-    # Amazing header section
-    header_frame = tk.Frame(main_container, bg="#1e293b", relief="flat", bd=0)
-    header_frame.pack(fill="x", pady=(0, 40))
-    
-    # Amazing title and version
-    title_frame = tk.Frame(header_frame, bg="#1e293b")
-    title_frame.pack(fill="x", padx=40, pady=30)
-    
-    title_label = tk.Label(title_frame, 
-                          text="🚀 Firmware Uploader", 
-                          font=('SF Pro Display', 32, 'bold'),
-                          bg="#1e293b", 
-                          fg="#ffffff")
-    title_label.pack(side="left")
-    
-    version_label = tk.Label(title_frame, 
-                            text=f"v{VERSION}", 
-                            font=('SF Pro Display', 18, 'bold'),
-                            bg="#1e293b", 
-                            fg="#3b82f6")
-    version_label.pack(side="left", padx=(25, 0))
-    
-    # Amazing project selector section
-    project_section = tk.Frame(main_container, bg="#1e293b", relief="flat", bd=3, highlightthickness=3, highlightbackground="#3b82f6")
-    project_section.pack(fill="x", pady=(0, 30))
-    
-    project_header = tk.Frame(project_section, bg="#1e293b")
-    project_header.pack(fill="x", padx=40, pady=(30, 25))
-    
-    tk.Label(project_header, 
-             text="📋 Project Configuration", 
-             font=('SF Pro Display', 18, 'bold'),
-             bg="#1e293b", 
-             fg="#ffffff").pack(side="left")
+    tk.Label(project_label_frame, text="Project:", font=("Arial", 10, "bold")).pack(side="left")
     
     # Advanced mode toggle
     show_advanced = tk.BooleanVar(value=False)
@@ -693,118 +609,54 @@ def main():
         elif projects:
             project_combo.current(0)
         
-        # Update button text and style for amazing mode
+        # Update button text
         if is_advanced:
-            advanced_btn.config(text="✓ Advanced", bg="#10b981", fg="white")
+            advanced_btn.config(text="✓ Advanced", relief=tk.SUNKEN)
         else:
-            advanced_btn.config(text="Advanced", bg="#3b82f6", fg="white")
+            advanced_btn.config(text="Advanced", relief=tk.RAISED)
     
     advanced_btn = tk.Button(
-        project_header,
+        project_label_frame,
         text="Advanced",
         command=lambda: [show_advanced.set(not show_advanced.get()), toggle_advanced()],
-        font=('SF Pro Display', 13, 'bold'),
-        bg="#3b82f6",
-        fg="white",
-        relief="flat",
-        padx=30,
-        pady=15,
-        cursor="hand2",
-        bd=0,
-        activebackground="#10b981",
-        activeforeground="white"
+        relief=tk.RAISED,
+        padx=10
     )
-    advanced_btn.pack(side="right")
+    advanced_btn.pack(side="right", padx=(0, 10))
     
-    project_combo = ttk.Combobox(project_section, 
-                                values=get_project_list(show_advanced=False), 
-                                width=50, 
-                                state="readonly",
-                                style="Modern.TCombobox",
-                                font=('SF Pro Display', 13, 'bold'))
-    project_combo.pack(fill="x", padx=40, pady=(0, 30))
+    project_combo = ttk.Combobox(root, values=get_project_list(show_advanced=False), width=60, state="readonly")
+    project_combo.pack(anchor="w", padx=10, pady=5)
     if PROJECTS:
         project_combo.current(0)
     
-    # Amazing firmware selector section
-    firmware_section = tk.Frame(main_container, bg="#1e293b", relief="flat", bd=3, highlightthickness=3, highlightbackground="#3b82f6")
-    firmware_section.pack(fill="x", pady=(0, 30))
-    
-    tk.Label(firmware_section, 
-             text="📁 Firmware File", 
-             font=('SF Pro Display', 18, 'bold'),
-             bg="#1e293b", 
-             fg="#ffffff").pack(anchor="w", padx=40, pady=(30, 25))
-    
-    fw_frame = tk.Frame(firmware_section, bg="#1e293b")
-    fw_frame.pack(fill="x", padx=40, pady=(0, 30))
-    
-    firmware_entry = tk.Entry(fw_frame, 
-                             font=('SF Pro Display', 13, 'bold'),
-                             relief="flat",
-                             bd=3,
-                             bg="#334155",
-                             fg="white",
-                             insertbackground="white",
-                             highlightthickness=3,
-                             highlightcolor="#10b981",
-                             highlightbackground="#3b82f6")
-    firmware_entry.pack(side="left", fill="x", expand=True, padx=(0, 25))
-    
-    browse_btn = tk.Button(
+    # --- Firmware selector ---
+    tk.Label(root, text="Firmware File:", font=("Arial", 10, "bold")).pack(anchor="w", padx=10, pady=(10, 0))
+    fw_frame = tk.Frame(root)
+    fw_frame.pack(fill="x", padx=10, pady=5)
+    firmware_entry = tk.Entry(fw_frame, width=70)
+    firmware_entry.pack(side="left", fill="x", expand=True)
+    tk.Button(
         fw_frame,
-        text="📂 Browse",
-        command=lambda: select_firmware(firmware_entry, project_combo),
-        font=('SF Pro Display', 13, 'bold'),
-        bg="#10b981",
-        fg="white",
-        relief="flat",
-        padx=30,
-        pady=15,
-        cursor="hand2",
-        bd=0,
-        activebackground="#059669",
-        activeforeground="white"
-    )
-    browse_btn.pack(side="right")
+        text="Browse",
+        command=lambda: select_firmware(firmware_entry, project_combo)
+    ).pack(side="left", padx=5)
     
-    # Amazing serial port selector section
-    port_section = tk.Frame(main_container, bg="#1e293b", relief="flat", bd=3, highlightthickness=3, highlightbackground="#3b82f6")
-    port_section.pack(fill="x", pady=(0, 40))
+    # --- Serial port selector ---
+    port_hint_label = tk.Label(root, text="Serial Port:", font=("Arial", 10, "bold"))
+    port_hint_label.pack(anchor="w", padx=10, pady=(10, 0))
     
-    port_hint_label = tk.Label(port_section, 
-                              text="🔌 Serial Port", 
-                              font=('SF Pro Display', 18, 'bold'),
-                              bg="#1e293b", 
-                              fg="#ffffff")
-    port_hint_label.pack(anchor="w", padx=40, pady=(30, 25))
+    port_frame = tk.Frame(root)
+    port_frame.pack(fill="x", padx=10, pady=5)
     
-    port_frame = tk.Frame(port_section, bg="#1e293b")
-    port_frame.pack(fill="x", padx=40, pady=(0, 30))
-    
-    port_combo = ttk.Combobox(port_frame, 
-                             width=50,
-                             style="Modern.TCombobox",
-                             font=('SF Pro Display', 13, 'bold'))
-    port_combo.pack(side="left", fill="x", expand=True, padx=(0, 25))
+    port_combo = ttk.Combobox(port_frame, width=50)
+    port_combo.pack(side="left", fill="x", expand=True)
     refresh_ports(port_combo, project_combo)
     
-    refresh_btn = tk.Button(
+    tk.Button(
         port_frame,
         text="🔄 Refresh",
-        command=lambda: refresh_ports(port_combo, project_combo),
-        font=('SF Pro Display', 13, 'bold'),
-        bg="#3b82f6",
-        fg="white",
-        relief="flat",
-        padx=30,
-        pady=15,
-        cursor="hand2",
-        bd=0,
-        activebackground="#10b981",
-        activeforeground="white"
-    )
-    refresh_btn.pack(side="right")
+        command=lambda: refresh_ports(port_combo, project_combo)
+    ).pack(side="left", padx=5)
     
     # Update port hint and refresh port selection when project changes
     def on_project_change(event):
@@ -814,23 +666,13 @@ def main():
     project_combo.bind("<<ComboboxSelected>>", on_project_change)
     update_port_hint(project_combo, port_hint_label)
     
-    # Amazing flash button section
-    button_section = tk.Frame(main_container, bg="#0f0f23")
-    button_section.pack(fill="x", pady=(0, 40))
-    
+    # --- Flash button ---
     flash_button = tk.Button(
-        button_section,
-        text="🚀 Upload Firmware",
-        font=('SF Pro Display', 20, 'bold'),
-        bg="#10b981",
+        root,
+        text="🚀 Flash Firmware",
+        font=("Arial", 12, "bold"),
+        bg="#4CAF50",
         fg="white",
-        relief="flat",
-        padx=80,
-        pady=25,
-        cursor="hand2",
-        bd=0,
-        activebackground="#059669",
-        activeforeground="white",
         command=lambda: flash_firmware(
             project_combo.get(),
             firmware_entry.get(),
@@ -839,38 +681,16 @@ def main():
             flash_button
         )
     )
-    flash_button.pack()
+    flash_button.pack(padx=10, pady=15)
     
-    # Amazing log output section
-    log_section = tk.Frame(main_container, bg="#1e293b", relief="flat", bd=3, highlightthickness=3, highlightbackground="#3b82f6")
-    log_section.pack(fill="both", expand=True)
+    # --- Log output ---
+    tk.Label(root, text="Log Output:", font=("Arial", 10, "bold")).pack(anchor="w", padx=10)
+    log = scrolledtext.ScrolledText(root, wrap=tk.WORD, width=80, height=20)
+    log.pack(fill="both", expand=True, padx=10, pady=(0, 10))
     
-    log_header = tk.Frame(log_section, bg="#1e293b")
-    log_header.pack(fill="x", padx=40, pady=(30, 25))
-    
-    tk.Label(log_header, 
-             text="📊 Output Log", 
-             font=('SF Pro Display', 18, 'bold'),
-             bg="#1e293b", 
-             fg="#ffffff").pack(side="left")
-    
-    log = scrolledtext.ScrolledText(log_section, 
-                                   wrap=tk.WORD, 
-                                   width=80, 
-                                   height=15,
-                                   font=('SF Mono', 12, 'bold'),
-                                   bg="#0f0f23",
-                                   fg="#ffffff",
-                                   insertbackground="white",
-                                   selectbackground="#10b981",
-                                   relief="flat",
-                                   bd=0)
-    log.pack(fill="both", expand=True, padx=40, pady=(0, 30))
-    
-    # Amazing log content
-    log.insert(tk.END, f"🚀 Firmware Uploader v{VERSION}\n")
-    log.insert(tk.END, f"📋 Loaded {len(PROJECTS)} project configuration(s)\n")
-    log.insert(tk.END, f"⚙️  Available: {len(ADVANCED_PROJECTS)} advanced board(s)\n")
+    log.insert(tk.END, f"Firmware Uploader v{VERSION}\n")
+    log.insert(tk.END, f"Loaded {len(PROJECTS)} project configuration(s)\n")
+    log.insert(tk.END, f"Available: {len(ADVANCED_PROJECTS)} advanced board(s)\n")
     log.insert(tk.END, "="*60 + "\n\n")
     
     root.mainloop()

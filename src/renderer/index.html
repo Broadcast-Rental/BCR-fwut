@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firmware Uploader</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <i class="fas fa-microchip logo-icon"></i>
+                    <div class="title-section">
+                        <h1>Firmware Uploader</h1>
+                        <p class="version">v1.0.0</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="refreshPortsBtn" class="btn btn-secondary" title="Refresh Serial Ports">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Configuration Panel -->
+            <div class="config-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-cog"></i> Configuration</h2>
+                </div>
+                
+                <div class="form-grid">
+                    <!-- Project Selection -->
+                    <div class="form-group">
+                        <label for="projectSelect">
+                            <i class="fas fa-project-diagram"></i>
+                            Project
+                        </label>
+                        <div class="input-with-button">
+                            <select id="projectSelect" class="form-control">
+                                <option value="">Select a project...</option>
+                            </select>
+                            <button id="advancedToggle" class="btn btn-outline toggle-btn">
+                                <span id="advancedText">Advanced</span>
+                            </button>
+                        </div>
+                        <div id="projectHint" class="hint-text"></div>
+                    </div>
+
+                    <!-- Firmware File -->
+                    <div class="form-group">
+                        <label for="firmwarePath">
+                            <i class="fas fa-file-code"></i>
+                            Firmware File
+                        </label>
+                        <div class="input-with-button">
+                            <input type="text" id="firmwarePath" class="form-control" placeholder="Select firmware file..." readonly>
+                            <button id="browseFirmware" class="btn btn-outline">
+                                <i class="fas fa-folder-open"></i> Browse
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Serial Port -->
+                    <div class="form-group">
+                        <label for="portSelect">
+                            <i class="fas fa-plug"></i>
+                            <span id="portLabel">Serial Port</span>
+                        </label>
+                        <select id="portSelect" class="form-control">
+                            <option value="">Select serial port...</option>
+                        </select>
+                        <div id="portStatus" class="status-text"></div>
+                    </div>
+                </div>
+
+                <!-- Flash Button -->
+                <div class="flash-section">
+                    <button id="flashBtn" class="btn btn-primary btn-large" disabled>
+                        <i class="fas fa-rocket"></i>
+                        <span>Flash Firmware</span>
+                    </button>
+                    <div id="flashProgress" class="progress-container" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <span class="progress-text">Flashing firmware...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Panel -->
+            <div class="log-panel">
+                <div class="panel-header">
+                    <h2><i class="fas fa-terminal"></i> Log Output</h2>
+                    <div class="log-actions">
+                        <button id="clearLogBtn" class="btn btn-small btn-outline" title="Clear Log">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button id="copyLogBtn" class="btn btn-small btn-outline" title="Copy Log">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="logOutput" class="log-output">
+                    <div class="log-entry info">
+                        <span class="log-time">[INFO]</span>
+                        <span class="log-message">Firmware Uploader v1.0.0</span>
+                    </div>
+                    <div class="log-entry info">
+                        <span class="log-time">[INFO]</span>
+                        <span class="log-message">Ready to flash firmware</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div class="status-content">
+                <div class="status-left">
+                    <span id="connectionStatus" class="status-indicator offline">
+                        <i class="fas fa-circle"></i>
+                        Disconnected
+                    </span>
+                </div>
+                <div class="status-right">
+                    <span id="deviceInfo" class="device-info">No device selected</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

@@ -1,27 +1,29 @@
 {
   "name": "firmware-uploader",
   "version": "1.0.0",
-  "description": "Modern firmware uploader for ESP32, Arduino and other devices",
-  "main": "electron/main.js",
+  "description": "Simple tool for uploading firmware to ESP32, Arduino, and other microcontroller devices",
+  "main": "src/main.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
     "build": "electron-builder",
-    "build:mac": "electron-builder --mac",
-    "build:win": "electron-builder --win",
-    "build:linux": "electron-builder --linux"
+    "dist": "electron-builder --publish=never",
+    "release": "npm version patch && git push --follow-tags",
+    "release:minor": "npm version minor && git push --follow-tags",
+    "release:major": "npm version major && git push --follow-tags",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [
     "firmware",
-    "uploader",
     "esp32",
     "arduino",
-    "electron"
+    "microcontroller",
+    "uploader"
   ],
   "author": "Broadcast Rental",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^28.0.0",
+    "electron": "^27.0.0",
     "electron-builder": "^24.6.4"
   },
   "dependencies": {
@@ -34,20 +36,61 @@
       "output": "dist"
     },
     "files": [
-      "electron/**/*",
       "src/**/*",
-      "build-tools/**/*",
-      "node_modules/**/*"
+      "build-tools/assets/**/*",
+      "node_modules/**/*",
+      "!node_modules/.bin/**/*",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "build-tools/assets/",
+        "to": "assets/"
+      }
     ],
     "mac": {
       "category": "public.app-category.developer-tools",
-      "icon": "build-tools/assets/logo.png"
+      "icon": "build-tools/assets/logo.png",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build-tools/entitlements.plist",
+      "entitlementsInherit": "build-tools/entitlements.plist"
     },
     "win": {
-      "icon": "build-tools/assets/logo.ico"
+      "icon": "build-tools/assets/logo.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "publisherName": "Broadcast Rental"
     },
     "linux": {
-      "icon": "build-tools/assets/logo.png"
+      "icon": "build-tools/assets/logo.png",
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ],
+      "category": "Development"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     }
   }
 }
