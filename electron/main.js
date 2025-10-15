@@ -101,9 +101,13 @@ app.on('activate', () => {
 ipcMain.handle('get-serial-ports', async () => {
   try {
     const ports = await SerialPort.list();
+    console.log('Found serial ports:', ports);
     return ports.map(port => ({
       path: port.path,
-      description: port.friendlyName || port.manufacturer || 'Unknown device'
+      description: port.friendlyName || port.manufacturer || port.productId || 'Unknown device',
+      manufacturer: port.manufacturer || 'Unknown',
+      productId: port.productId || 'Unknown',
+      vendorId: port.vendorId || 'Unknown'
     }));
   } catch (error) {
     console.error('Error listing serial ports:', error);
