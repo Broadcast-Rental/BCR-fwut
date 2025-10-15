@@ -1,6 +1,6 @@
 {
   "name": "firmware-uploader",
-  "version": "2.0.0-rc.4",
+  "version": "2.0.0-rc.5",
   "description": "Simple tool for uploading firmware to ESP32, Arduino, and other microcontroller devices",
   "main": "src/main.js",
   "scripts": {
